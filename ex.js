@@ -8,6 +8,7 @@ let dragSrc=null;
 let placeholder=document.createElement("li");
 placeholder.classList.add("placeholder");
 
+// Load tasks from localStorage
 window.onload=()=>{
   const saved=JSON.parse(localStorage.getItem("tasks"))||[];
   saved.forEach(t=>createTask(t.text,t.done));
@@ -15,15 +16,18 @@ window.onload=()=>{
   updateProgress();
 };
 
+// Add new task
 addBtn.addEventListener("click", addTask);
 input.addEventListener("keypress", e=>{ if(e.key==="Enter") addTask(); });
 
+// Theme toggle
 themeToggle.addEventListener("click", ()=>{
   document.body.classList.toggle("light");
   themeToggle.textContent=document.body.classList.contains("light")?"☀️":"🌙";
   localStorage.setItem("theme", document.body.classList.contains("light")?"light":"dark");
 });
 
+// Filter buttons
 filterBtns.forEach(btn=>{
   btn.addEventListener("click", ()=>{
     filterBtns.forEach(b=>b.classList.remove("active"));
@@ -32,6 +36,7 @@ filterBtns.forEach(btn=>{
   });
 });
 
+// Functions
 function addTask(){
   const text=input.value.trim();
   if(!text) return;
@@ -69,8 +74,10 @@ function createTask(text,done){
 
   addSwipeEvents(li);
   addDragEvents(li);
+  updateProgress();
 }
 
+// Save tasks to localStorage
 function saveTasks(){
   const tasks=[];
   document.querySelectorAll("#task-list li").forEach(li=>{
@@ -79,20 +86,23 @@ function saveTasks(){
   localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
+// Filter tasks
 function applyFilter(filter){
-  document.querySelectorAll("#task-list li").forEach(li=>{
-    if(filter==="all") li.style.display="flex";
-    else if(filter==="done") li.style.display=li.classList.contains("done")?"flex":"none";
-    else if(filter==="pending") li.style.display=li.classList.contains("done")?"none":"flex";
+  const allTasks = document.querySelectorAll("#task-list li");
+  allTasks.forEach(li => {
+    li.style.display="flex"; // reset
+    if(filter==="done" && !li.classList.contains("done")) li.style.display="none";
+    if(filter==="pending" && li.classList.contains("done")) li.style.display="none";
   });
 }
 
+// Update progress bar
 function updateProgress(){
-  const tasks=document.querySelectorAll("#task-list li");
-  if(!tasks.length){ progressBar.style.width="0%"; return; }
-  const doneTasks=document.querySelectorAll("#task-list li.done").length;
-  const percent=Math.round((doneTasks/tasks.length)*100);
-  progressBar.style.width=percent+"%";
+  const allTasks = JSON.parse(localStorage.getItem("tasks")) || [];
+  if(!allTasks.length){ progressBar.style.width="0%"; return; }
+  const doneTasks = allTasks.filter(t=>t.done).length;
+  const percent = Math.round((doneTasks / allTasks.length)*100);
+  progressBar.style.width = percent + "%";
 }
 
 // Swipe-to-delete
